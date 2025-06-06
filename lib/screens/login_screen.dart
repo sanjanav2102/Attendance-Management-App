@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
+
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -27,7 +29,7 @@ class LoginScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 80),
                   const Text(
-                    'Hello\nSign in!',
+                    'SIGN IN',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -57,7 +59,6 @@ class LoginScreen extends StatelessWidget {
                           decoration: const InputDecoration(
                             labelText: 'Email',
                             border: UnderlineInputBorder(),
-                            suffixIcon: Icon(Icons.check),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -66,7 +67,7 @@ class LoginScreen extends StatelessWidget {
                           obscureText: true,
                           decoration: const InputDecoration(
                             labelText: 'Password',
-                            border: UnderlineInputBorder(),
+
                             suffixIcon: Icon(Icons.visibility_off),
                           ),
                         ),
@@ -95,7 +96,9 @@ class LoginScreen extends StatelessWidget {
                           ),
                           child: TextButton(
                             onPressed: () {
-                              // handle sign in
+                              final email = emailController.text.trim();
+                              final password = passwordController.text.trim();
+                              AuthService().signInWithEmailAndPassword(email, password, context);
                             },
                             child: const Text(
                               'SIGN IN',
