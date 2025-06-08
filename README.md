@@ -1,4 +1,4 @@
-# 🛂 AttendanceApp – Firestore Login System in Flutter
+# 🛂 AttendanceApp 
 
 This is a Flutter-based login system for an attendance management app that uses **Cloud Firestore** instead of Firebase Authentication. The login flow supports two user roles: `admin` and `employee`.
 
