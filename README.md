@@ -1,16 +1,19 @@
-# attendanceapp
+# 🛂 AttendanceApp – Firestore Login System in Flutter
 
-A new Flutter project.
+This is a Flutter-based login system for an attendance management app that uses **Cloud Firestore** instead of Firebase Authentication. The login flow supports two user roles: `admin` and `employee`.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🚀 Features
 
-A few resources to get you started if this is your first Flutter project:
+- Login using Firestore-stored email and password
+- Role-based navigation:
+  - Admin → `AdminDashboard()`
+  - Employee → `EmployeeDashboard()`
+- Validates email format and credential match
+- Displays error messages for invalid email or incorrect password
+- Firebase initialized with manual config via `FirebaseOptions`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
