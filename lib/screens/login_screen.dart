@@ -1,11 +1,25 @@
-
+import 'package:attendanceapp/screens/forgot_password.dart';
 import 'package:flutter/material.dart';
-
 import '../services/auth_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +44,6 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 80),
                   const Text(
                     'SIGN IN',
-                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 34,
@@ -67,7 +80,6 @@ class LoginScreen extends StatelessWidget {
                           obscureText: true,
                           decoration: const InputDecoration(
                             labelText: 'Password',
-
                             suffixIcon: Icon(Icons.visibility_off),
                           ),
                         ),
@@ -76,7 +88,10 @@ class LoginScreen extends StatelessWidget {
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () {
-                              // handle forgot password
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                              );
                             },
                             child: const Text(
                               'Forgot password?',
@@ -98,7 +113,7 @@ class LoginScreen extends StatelessWidget {
                             onPressed: () {
                               final email = emailController.text.trim();
                               final password = passwordController.text.trim();
-                              AuthService().signInWithEmailAndPassword(email, password, context);
+                              AuthService().loginUsingFirestore(email, password, context);
                             },
                             child: const Text(
                               'SIGN IN',

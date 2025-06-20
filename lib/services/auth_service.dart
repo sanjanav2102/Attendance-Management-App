@@ -1,60 +1,75 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:attendanceapp/screens/admin_with_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-// Example placeholders
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/admin_dashboard.dart';
 import '../screens/employee_dashboard.dart';
 
-
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> signInWithEmailAndPassword(
+  Future<void> loginUsingFirestore(
       String email, String password, BuildContext context) async {
-      print("🔥 Firebase Auth instance: ${FirebaseAuth.instance.app.name}");
-      print("🔥 Firestore instance: ${FirebaseFirestore.instance.app.name}");
+    // Validate email format
+    if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$").hasMatch(email)) {
+      showError(context, "Please enter a valid email address");
+      return;
+    }
 
     try {
-      // 1. Sign in with Firebase Auth
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
-
-      // 2. Fetch user document from Firestore
       DocumentSnapshot userDoc =
       await _firestore.collection('user').doc(email).get();
 
       if (!userDoc.exists) {
-        // User document doesn't exist
-        showError(context, "User not found in database");
+        showError(context, "Invalid email. User not found");
         return;
       }
 
-      // 3. Check role field
-      String role = userDoc.get('role'); // should be 'admin' or 'employee'
+      final data = userDoc.data() as Map<String, dynamic>;
 
-      // 4. Navigate based on role
+      if (data['password'] != password) {
+        showError(context, "Incorrect password. Please try again");
+        return;
+      }
+
+      final role = data['role'];
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userEmail', email);
+      await _firestore.collection('user').doc(email).update({'isLoggedIn': true});
+      await prefs.setString('loggedInUserId', data['userId'].toString());
+      await prefs.setString('userId', data['userId'].toString());
+      await prefs.setString('userName', data['name'] ?? 'Unknown');
+
+
       if (role == 'admin') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => AdminDashboard()));
+          context,
+          MaterialPageRoute(builder: (_) => AdminHomeWithCalendar()),
+        );
       } else if (role == 'employee') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => EmployeeDashboard()));
+          context,
+          MaterialPageRoute(
+            builder: (_) => EmployeeDashboard(email: email),
+          ),
+        );
+
       } else {
-        showError(context, "Unknown role found in database");
+        showError(context, "Unknown role: $role");
       }
-    } on FirebaseAuthException catch (e) {
-      showError(context, e.message ?? "Authentication failed");
     } catch (e) {
-      showError(context, "Unexpected error: $e");
+      showError(context, "Login failed: $e");
     }
   }
 
   void showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.red,
-    ));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    });
   }
 }
