@@ -1,4 +1,5 @@
 import 'package:attendanceapp/screens/admin_dashboards/leave_requests.dart';
+import 'package:attendanceapp/screens/admin_dashboards/policies.dart';
 import 'package:attendanceapp/screens/leave_calander.dart';
 import 'package:attendanceapp/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../themes/theme_provider.dart';
 import 'admin_dashboards/attendance_master.dart';
 import 'admin_dashboards/codes_table.dart';
 import 'admin_dashboards/employee_master.dart';
+import 'admin_dashboards/qr_code_generator.dart';
 import 'logout_screen.dart';
 
 
@@ -58,6 +60,8 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
       "label": "Codes",
       "content": "View codes"
     },
+    {"icon": Icons.qr_code_sharp, "label": "QR Code", "content": "Generate QR Code"},
+    {"icon": Icons.local_police_rounded, "label": "Policies", "content": "View Policies"},
   ];
 
 
@@ -360,6 +364,18 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
                       } else if (label == 'Requests') {
                         Navigator.push(context, MaterialPageRoute(
                             builder: (_) => const LeaveMasterScreen()));
+                      }
+                      else if (label == 'QR Code') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const QRCodeGeneratorScreen(userEmail: 'admin@company.com')),
+                        );
+                      }
+                      else if (label == 'Policies') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PolicyScreen()),
+                        );
                       }
                     },
                     child: Container(

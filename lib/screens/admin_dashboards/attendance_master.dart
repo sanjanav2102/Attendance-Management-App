@@ -105,7 +105,7 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
         ],
       ),
       body: attendanceList.isEmpty
-          ? const Center(child: Text("No attendance records"))
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(

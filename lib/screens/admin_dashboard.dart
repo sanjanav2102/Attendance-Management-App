@@ -1,5 +1,6 @@
 import 'package:attendanceapp/screens/admin_dashboards/attendance_master.dart';
 import 'package:attendanceapp/screens/admin_dashboards/codes_table.dart';
+import 'package:attendanceapp/screens/admin_dashboards/qr_code_generator.dart';
 import 'package:attendanceapp/screens/leave_calander.dart';
 import 'package:flutter/material.dart';
 import '../screens/login_screen.dart';
@@ -16,6 +17,7 @@ class AdminDashboard extends StatelessWidget {
     {"icon": Icons.calendar_month_sharp, "label": "Calendar", "content": "Leave Calendar"},
     {"icon": Icons.request_page, "label": "Requests", "content": "Leave Requests"},
     {"icon": Icons.table_chart_outlined, "label": "Codes", "content": "View codes"},
+    {"icon": Icons.qr_code_sharp, "label": "QR Code", "content": "Generate QR Code"},
   ];
 
   @override
@@ -85,6 +87,12 @@ class AdminDashboard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const CodesMasterScreen()),
+                  );
+                }
+                else if (label == 'QR Code') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const QRCodeGeneratorScreen(userEmail: 'admin@company.com')),
                   );
                 }
               },
