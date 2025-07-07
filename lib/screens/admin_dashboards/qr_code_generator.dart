@@ -136,7 +136,7 @@ class _QRCodeGeneratorScreenState extends State<QRCodeGeneratorScreen> {
                 onPressed: _isGenerating ? null : _generateQRCode,
                 child: _isGenerating
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Generate QR Code for Today'),
+                    : const Text('Click here to generate QR Code'),
               ),
             ),
             const SizedBox(height: 32),
@@ -144,7 +144,7 @@ class _QRCodeGeneratorScreenState extends State<QRCodeGeneratorScreen> {
               Center(
                 child: Column(
                   children: [
-                    const Text('Today\'s QR Code:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('QR Code:', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     QrImageView(
                       data: json.encode(_currentQRCode),
@@ -152,9 +152,6 @@ class _QRCodeGeneratorScreenState extends State<QRCodeGeneratorScreen> {
                       size: 200,
                     ),
                     const SizedBox(height: 16),
-                    Text('Office: ${_currentQRCode!['officeName']}'),
-                    Text('Type: ${_currentQRCode!['type']}'),
-                    Text('Date: ${_currentQRCode!['date']}'),
                   ],
                 ),
               ),

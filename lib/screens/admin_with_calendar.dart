@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:attendanceapp/screens/admin_dashboards/leave_requests.dart';
 import 'package:attendanceapp/screens/admin_dashboards/policies.dart';
 import 'package:attendanceapp/screens/leave_calander.dart';
 import 'package:attendanceapp/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../themes/theme_provider.dart';
@@ -31,6 +34,10 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
   Set<DateTime> _fullPresentDates = {};
   Set<DateTime> _partialAbsentDates = {};
   AppThemeMode _selectedMode = AppThemeMode.system;
+
+  String _weather = "Loading...";
+  String _temperature = "--";
+  String _city = "Trivandrum";
 
 
 
@@ -70,11 +77,27 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
     super.initState();
     _loadHolidays();
     _loadAttendance();
+    _fetchWeather();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _selectedMode = Provider.of<ThemeProvider>(context, listen: false).appThemeMode;
       });
     });
+  }
+
+  Future<void> _fetchWeather() async {
+    final url = Uri.parse("https://api.weatherapi.com/v1/current.json?key=4cfd939aacbd4e068e2105146250607&q=$_city");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        _weather = data['current']['condition']['text'];
+        _temperature = data['current']['temp_c'].toString() + "°C";
+      });
+    } else {
+      setState(() => _weather = "Unable to fetch weather");
+    }
   }
 
 
@@ -179,34 +202,40 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
                 );
               },
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: DropdownButton<AppThemeMode>(
-                icon: Icon(Icons.change_circle_outlined),
-                isExpanded: true,
-                value: _selectedMode,
-                items: const [
-                  DropdownMenuItem(
-                    value: AppThemeMode.system,
-                    child: Text("System Default"),
-                  ),
-                  DropdownMenuItem(
-                    value: AppThemeMode.light,
-                    child: Text("Light"),
-                  ),
-                  DropdownMenuItem(
-                    value: AppThemeMode.dark,
-                    child: Text("Dark"),
-                  ),
-                ],
-                onChanged: (mode) {
-                  if (mode != null) {
-                    Provider.of<ThemeProvider>(context, listen: false).setTheme(mode);
-                    setState(() => _selectedMode = mode);
-                  }
-                },
+            ListTile(
+              leading: const Icon(Icons.brightness_6, color: Color(0xFF9D0B22)),
+              title: const Text("Theme"),
+              trailing: DropdownButtonHideUnderline(
+                child: DropdownButton<AppThemeMode>(
+                  value: _selectedMode,
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+                  dropdownColor: Theme.of(context).cardColor,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  borderRadius: BorderRadius.circular(12),
+                  items: const [
+                    DropdownMenuItem(
+                      value: AppThemeMode.system,
+                      child: Text("System"),
+                    ),
+                    DropdownMenuItem(
+                      value: AppThemeMode.light,
+                      child: Text("Light"),
+                    ),
+                    DropdownMenuItem(
+                      value: AppThemeMode.dark,
+                      child: Text("Dark"),
+                    ),
+                  ],
+                  onChanged: (mode) {
+                    if (mode != null) {
+                      Provider.of<ThemeProvider>(context, listen: false).setTheme(mode);
+                      setState(() => _selectedMode = mode);
+                    }
+                  },
+                ),
               ),
             ),
+
             ListTile(
               leading: const Icon(Icons.logout, color: Color(0xFF9D0B22)),
               title: const Text("Logout"),
@@ -220,6 +249,38 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).shadowColor.withOpacity(0.1),
+                      blurRadius: 6,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Image.network("https://cdn.weatherapi.com/weather/64x64/day/116.png", height: 48),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("$_city Weather", style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold)),
+                        Text("$_weather | $_temperature", style: Theme.of(context).textTheme.bodyMedium),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -239,7 +300,37 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
                         _selectedDay = selected;
                         _focusedDay = focused;
                       });
+
+                      final events = _getEventsForDay(selected);
+                      if (events.isNotEmpty) {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Holiday Info"),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Date: ${selected.day}-${selected.month}-${selected.year}"),
+                                const SizedBox(height: 10),
+                                ...events.map((e) => Text(
+                                  "${e['holidayName'] ?? e['status']}",
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                )),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Close"),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                     },
+
+
                     calendarFormat: _calendarFormat,
                     onFormatChanged: (format) {
                       setState(() {
@@ -309,7 +400,7 @@ class _AdminHomeWithCalendarState extends State<AdminHomeWithCalendar> {
                             color: isAbsent
                                 ? Colors.red.withOpacity(0.2)
                                 : isPresent
-                                ? Colors.green.withOpacity(0.2)
+                                ? Colors.white.withOpacity(0.2)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.grey.shade300),

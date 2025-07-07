@@ -2,7 +2,6 @@ import 'package:attendanceapp/screens/admin_with_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/admin_dashboard.dart';
 import '../screens/employee_dashboard.dart';
 
 class AuthService {
@@ -39,6 +38,7 @@ class AuthService {
       await prefs.setString('loggedInUserId', data['userId'].toString());
       await prefs.setString('userId', data['userId'].toString());
       await prefs.setString('userName', data['name'] ?? 'Unknown');
+      await prefs.setString('userRole', role);
 
 
       if (role == 'admin') {

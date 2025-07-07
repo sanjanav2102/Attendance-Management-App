@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:attendanceapp/screens/admin_dashboards/policies.dart';
 import 'package:attendanceapp/screens/admin_with_calendar.dart';
+import 'package:attendanceapp/screens/employee_dashboards/emp_qr_code.dart';
 import 'package:attendanceapp/screens/employee_dashboards/leave_apply.dart';
 import 'package:attendanceapp/screens/employee_dashboards/leave_status.dart';
 import 'package:attendanceapp/screens/employee_dashboards/mark_attendance.dart';
@@ -6,6 +10,7 @@ import 'package:attendanceapp/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -20,7 +25,9 @@ import 'logout_screen.dart';
 
 class EmployeeDashboard extends StatefulWidget {
   final String email;
+
   const EmployeeDashboard({super.key, required this.email});
+
 
   @override
   State<EmployeeDashboard> createState() => _EmployeeDashboardState();
@@ -34,12 +41,19 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
   Map<DateTime, String> _attendanceStatus = {};
   String userId = 'userId';
   String name = 'name';
+  final String email = 'emp1@company.com';
   AppThemeMode _selectedMode = AppThemeMode.system;
+  String _weather = "Loading...";
+  String _temperature = "--";
+  String _city = "Trivandrum";
 
   final List<Map<String, dynamic>> menuItems = const [
     {"icon": Icons.date_range_sharp, "label": "Attendance", "content": "View attendance details"},
     {"icon": Icons.request_page, "label": "Apply Leave", "content": "Leave Requests"},
     {"icon": Icons.calendar_view_day_sharp, "label": "Leave Status", "content": "View your leave status"},
+    {"icon": Icons.list_sharp, "label": "Codes", "content": "See the codes available"},
+    {"icon": Icons.local_police, "label": "Policies", "content": "View policies"},
+    {"icon": Icons.qr_code_rounded, "label": "Mark Attendance", "content": "Mark your attendance here"},
   ];
 
   @override
@@ -49,6 +63,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
       await _loadUserData();
       await _loadAttendance();
       await _loadHolidays();
+      await _fetchWeather();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
@@ -64,6 +79,21 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
       name = prefs.getString('userName') ?? '';
       print(userId);
     });
+  }
+
+  Future<void> _fetchWeather() async {
+    final url = Uri.parse("https://api.weatherapi.com/v1/current.json?key=4cfd939aacbd4e068e2105146250607&q=$_city");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        _weather = data['current']['condition']['text'];
+        _temperature = data['current']['temp_c'].toString() + "°C";
+      });
+    } else {
+      setState(() => _weather = "Unable to fetch weather");
+    }
   }
 
   Future<void> _loadHolidays() async {
@@ -138,15 +168,15 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
         backgroundColor: const Color(0xFF9D0B22),
       ),
       drawer: Drawer(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           children: [
-            const UserAccountsDrawerHeader(
+            UserAccountsDrawerHeader(
               decoration: BoxDecoration(color: Color(0xFF9D0B22)),
               accountName: Text('Employee'),
               accountEmail: Text(''),
               currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
+                backgroundColor:Theme.of(context).scaffoldBackgroundColor,
                 child: Center(child: Icon(Icons.person, size: 40, color: Color(0xFF9D0B22))),
               ),
             ),
@@ -195,15 +225,46 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
           ],
         ),
       ),
-      backgroundColor: const Color(0xFFF0F0F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
+
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).shadowColor.withOpacity(0.1),
+                      blurRadius: 6,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Image.network("https://cdn.weatherapi.com/weather/64x64/day/116.png", height: 48),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("$_city Weather", style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold)),
+                        Text("$_weather | $_temperature", style: Theme.of(context).textTheme.bodyMedium),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
               ),
@@ -340,10 +401,19 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
                       } else if (label == 'Leave Status') {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaveStatusScreen()));
                       }
+                      else if (label == 'Codes') {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const CodesMasterScreen()));
+                      }
+                      else if (label == 'Policies') {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const PolicyScreen()));
+                      }
+                      else if (label == 'Mark Attendance') {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeQRScannerScreen(userId: userId, name: name, email: email)));
+                      }
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: const [
                           BoxShadow(color: Colors.black12, blurRadius: 6, spreadRadius: 2),
