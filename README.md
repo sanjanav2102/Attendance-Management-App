@@ -46,7 +46,7 @@
 - Firebase Authentication for login and session control.
 - QR code generation and validation using `qr_flutter`.
 
-## 🔧 Tech Stack
+### 🔧 Tech Stack
 
 | Technology     | Purpose                             |
 |----------------|-------------------------------------|
@@ -57,12 +57,9 @@
 | qr_flutter     | QR Code generation and display      |
 | intl           | Date formatting and manipulation    |
 
----
-## Documentation
+
+### 📄 Documentation
 📄 [Download Full Project Documentation](lib/documentation_materials/Documentation.pdf)
-
-
----
 
 ## 📄 Conclusion
 
@@ -70,10 +67,7 @@
 
 > ⚡ *Smart Attendance. Easy Management. That’s AttendEase.*
 
----
-
 ## 👨‍💻 Developed By
 **Sanjana V**  
 _Ainsurtech Internship Final Project_
 
----
