@@ -46,11 +46,6 @@
 - Firebase Authentication for login and session control.
 - QR code generation and validation using `qr_flutter`.
 
----
-
-
----
-
 ## 🔧 Tech Stack
 
 | Technology     | Purpose                             |
@@ -65,7 +60,6 @@
 ---
 ## Documentation
 📄 [Download Full Project Documentation](lib/documentation_materials/Documentation.pdf)
-
 
 
 ---
